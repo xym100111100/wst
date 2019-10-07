@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.github.rebue.common-pom</groupId>
+		<artifactId>sb-parent</artifactId>
+		<version>1.1.0</version>
+	</parent>
+
+	<groupId>com.github.rebue.wst</groupId>
+	<artifactId>wst</artifactId>
+	<packaging>pom</packaging>
+	<description>基于Spring CLoud构建微服务的演示项目</description>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.github.rebue.wst</groupId>
+				<artifactId>wst-api</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.rebue.wst</groupId>
+				<artifactId>wst-bll</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+  <modules>
+    <module>wst-gen</module>
+    <module>wst-api</module>
+    <module>wst-bll</module>
+    <module>wst-svr</module>
+  </modules>
+</project>

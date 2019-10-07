@@ -1,0 +1,17 @@
+target
+.classpath
+.project
+.settings
+logs
+*.log
+app.properties
+.springBeans
+.DS_Store
+rebel.xml
+application-prod.yml
+application-dev.yml
+.factorypath
+pom.xml.versionsBackup
+*.ldb
+*.pjb
+*.pdb
