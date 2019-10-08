@@ -1,32 +1,31 @@
 package rebue.wst.ctrl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RestController;
 import org.yeauty.annotation.ServerEndpoint;
-
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.timeout.IdleStateEvent;
+import lombok.extern.slf4j.Slf4j;
+import rebue.wst.mo.WstChatContentMo;
+import rebue.wst.mo.WstChatMo;
+import rebue.wst.svc.WstChatContentSvc;
 import rebue.wst.svc.WstChatSvc;
-
-import org.springframework.stereotype.Component;
 import org.yeauty.annotation.OnBinary;
 import org.yeauty.annotation.OnClose;
 import org.yeauty.annotation.OnError;
 import org.yeauty.annotation.OnEvent;
 import org.yeauty.annotation.OnMessage;
 import org.yeauty.annotation.OnOpen;
-import org.yeauty.annotation.ServerEndpoint;
 import org.yeauty.pojo.ParameterMap;
 import org.yeauty.pojo.Session;
-
+import com.alibaba.fastjson.JSONObject;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.annotation.Resource;
-
 @RestController
+@Slf4j
 @ServerEndpoint(prefix = "netty-websocket")
 public class WebSocketChatServer {
 
@@ -34,10 +33,12 @@ public class WebSocketChatServer {
 	// 与某个客户端的连接会话，需要通过它来给客户端发送数据
 	private Session session;
 	// 当前发消息的人员编号
-	private String userId = "";
 
 	@Autowired
 	private WstChatSvc wstChatSvc;
+
+	@Autowired
+	private WstChatContentSvc wstChatContentSvc;
 
 	/**
 	 * 
@@ -50,17 +51,19 @@ public class WebSocketChatServer {
 	@OnOpen
 	public void onOpen(Session session, HttpHeaders headers, ParameterMap parameterMap) throws IOException {
 		System.out.println("new connection");
-		System.out.println(session.id());
-		String paramValue = parameterMap.getParameter("paramKey");
+		log.info("new connection");
+		log.info("sessionId-{}", session.id());
+
+		String userId = parameterMap.getParameter("paramKey");
 		this.session = session;
-		webSocketSet.put(paramValue, this);// 加入map中
-		System.out.println(paramValue);
+		log.info("userId-{}", userId);
+		webSocketSet.put(userId, this);// 加入map中
 	}
 
 	@OnClose
 	public void onClose(Session session) throws IOException {
-		System.out.println(session.id());
-		System.out.println("one connection closed");
+		log.info("sessionId-{}", session.id());
+		log.info("one connection closed");
 	}
 
 	@OnError
@@ -70,14 +73,35 @@ public class WebSocketChatServer {
 
 	@OnMessage
 	public void OnMessage(Session session, String message) {
-		wstChatSvc.getById(1656546l);
-		System.out.println(session.id());
 		System.out.println(message);
-		if (webSocketSet.get("123") != null) {
-			webSocketSet.get("123").session.sendText(message);
+		log.info("message-{}", message);
+		JSONObject jsonObject = JSONObject.parseObject(message);
+		WstChatMo chatMo = new WstChatMo();
+		if (webSocketSet.get(jsonObject.get("toUserId")) != null) {
+			log.info("在线");
+			// 标记已读标示为true
+			chatMo.setAlreadyRead(true);
+			webSocketSet.get(jsonObject.get("toUserId")).session.sendText(message);
+		} else {
+			// 标记已读标示为false
+			chatMo.setAlreadyRead(false);
+			log.info("不在线");
 		}
-		System.out.println(webSocketSet.size());
-		session.sendText(message);
+		// 添加聊天记录
+		chatMo.setFromTime(new Date());
+		chatMo.setFromUserId(Long.parseLong(String.valueOf(jsonObject.get("fromUserId"))));
+		chatMo.setToUserId(Long.parseLong(String.valueOf(jsonObject.get("toUserId"))));
+		chatMo.setMessagesType((byte) 1);
+		log.info("添加聊天记录的参数为-{}", chatMo);
+		int i = wstChatSvc.add(chatMo);
+		log.info("添加聊天记录的结果为-{}", i);
+		WstChatContentMo contentMo = new WstChatContentMo();
+		contentMo.setChatId(chatMo.getId());
+		contentMo.setContent(String.valueOf(jsonObject.get("msg")));
+		log.info("添加聊天记录内容的参数为-{}", contentMo);
+		wstChatContentSvc.add(contentMo);
+		log.info("webSocketSet.size()-{}", webSocketSet.size());
+
 	}
 
 	@OnBinary
