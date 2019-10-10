@@ -6,9 +6,7 @@ import org.yeauty.annotation.ServerEndpoint;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;
-import rebue.wst.mo.WstChatContentMo;
 import rebue.wst.mo.WstChatMo;
-import rebue.wst.svc.WstChatContentSvc;
 import rebue.wst.svc.WstChatSvc;
 import org.yeauty.annotation.OnBinary;
 import org.yeauty.annotation.OnClose;
@@ -37,8 +35,6 @@ public class WebSocketChatServer {
 	@Autowired
 	private WstChatSvc wstChatSvc;
 
-	@Autowired
-	private WstChatContentSvc wstChatContentSvc;
 
 	/**
 	 * 
@@ -92,14 +88,10 @@ public class WebSocketChatServer {
 		chatMo.setFromUserId(Long.parseLong(String.valueOf(jsonObject.get("fromUserId"))));
 		chatMo.setToUserId(Long.parseLong(String.valueOf(jsonObject.get("toUserId"))));
 		chatMo.setMessagesType((byte) 1);
+		chatMo.setContent(String.valueOf(jsonObject.get("msg")));
 		log.info("添加聊天记录的参数为-{}", chatMo);
 		int i = wstChatSvc.add(chatMo);
 		log.info("添加聊天记录的结果为-{}", i);
-		WstChatContentMo contentMo = new WstChatContentMo();
-		contentMo.setChatId(chatMo.getId());
-		contentMo.setContent(String.valueOf(jsonObject.get("msg")));
-		log.info("添加聊天记录内容的参数为-{}", contentMo);
-		wstChatContentSvc.add(contentMo);
 		log.info("webSocketSet.size()-{}", webSocketSet.size());
 
 	}

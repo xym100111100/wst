@@ -76,6 +76,15 @@ public class WstChatJo implements Serializable {
     private Boolean alreadyRead;
 
     /**
+     * 聊天内容
+     *
+     * @mbg.generated 自动生成，如需修改，请删除本行
+     */
+    @Basic(optional = false)
+    @Column(name = "CONTENT", nullable = false, length = 500)
+    private String content;
+
+    /**
      * 发送时间
      *
      * @mbg.generated 自动生成，如需修改，请删除本行
