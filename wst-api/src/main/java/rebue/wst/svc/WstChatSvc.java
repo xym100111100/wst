@@ -19,4 +19,10 @@ public interface WstChatSvc extends BaseSvc<java.lang.Long, WstChatMo, WstChatJo
 	List<ChatRo> getChatByUserId(final java.lang.Long userId);
 
 	PageInfo<WstChatMo> listChat(WstChatMo mo, Integer pageNum, Integer pageSize);
+	
+	
+	int getUnreadContentByToUserId(final java.lang.Long toUserId);
+	
+	
+	int cleanUnreadContent(WstChatMo mo);
 }

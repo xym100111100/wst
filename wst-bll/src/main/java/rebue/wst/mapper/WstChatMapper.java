@@ -4,6 +4,8 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
+
 import rebue.robotech.mapper.MybatisBaseMapper;
 import rebue.wst.mo.WstChatMo;
 import rebue.wst.ro.ChatRo;
@@ -76,29 +78,45 @@ public interface WstChatMapper extends MybatisBaseMapper<WstChatMo, Long> {
 	@Select("select * from WST_CHAT where  (to_user_id=#{fromUserId} or from_user_id=#{fromUserId}) and (to_user_id= #{toUserId} or from_user_id=#{toUserId})  order by from_time desc  \n"
 			+ "")
 	List<WstChatMo> listChat(@Param("fromUserId") Long fromUserId, @Param("toUserId") Long toUserId);
-	
+
 	/**
 	 * 获取有和自己聊天的人的用户id
+	 * 
 	 * @param userId
 	 * @return
 	 */
-	@Select("select * from (\n" + 
-			"(select FROM_USER_ID as USER_ID from WST_CHAT  where  to_user_id=#{userId}  )\n" + 
-			"union\n" + 
-			"(select TO_USER_ID as USER_ID from WST_CHAT  where   from_user_id=#{userId} )) a  where a.USER_ID != #{userId}")
+	@Select("select * from (\n" + "(select FROM_USER_ID as USER_ID from WST_CHAT  where  to_user_id=#{userId}  )\n"
+			+ "union\n"
+			+ "(select TO_USER_ID as USER_ID from WST_CHAT  where   from_user_id=#{userId} )) a  where a.USER_ID != #{userId}")
 	List<Long> getOtherUserId(@Param("userId") Long userId);
-	
+
 	/**
 	 * 获取自己和该用户最新的聊天记录
+	 * 
 	 * @param userId
 	 * @param otherUserId
 	 * @return
 	 */
 	@Select("select * from WST_CHAT where (to_user_id=#{userId} or from_user_id=#{userId}) and (to_user_id= #{otherUserId} or from_user_id=#{otherUserId})  order by from_time  desc limit 1 ")
-	ChatRo getNewestMsg(@Param("userId") Long userId,@Param("otherUserId") Long otherUserId); 
+	ChatRo getNewestMsg(@Param("userId") Long userId, @Param("otherUserId") Long otherUserId);
 	
+	/**
+	 * 获取两个用户中未读消息的数量
+	 * @param userId
+	 * @param otherUserId
+	 * @return
+	 */
 	@Select("select count(*) from WST_CHAT where from_user_id = #{otherUserId} and  to_user_id = #{userId} and ALREADY_READ = false   ")
-	int getNotReadCount(@Param("userId") Long userId,@Param("otherUserId") Long otherUserId);
+	int getNotReadCount(@Param("userId") Long userId, @Param("otherUserId") Long otherUserId);
 	
+	/**
+	 * 获取该用户所有未读消息的数量
+	 * @param toUserId
+	 * @return
+	 */
+	@Select("select count(*) from WST_CHAT  where ALREADY_READ = false and to_user_id = #{toUserId}")
+	int getUnreadContentByToUserId(@Param("toUserId") Long toUserId);
 	
+	@Update("update WST_CHAT set ALREADY_READ = true where from_user_id = #{fromUserId}  and to_user_id = #{toUserId} and  ALREADY_READ = false   ")
+	int cleanUnreadContent(@Param("toUserId") Long toUserId,@Param("fromUserId") Long fromUserId);
 }

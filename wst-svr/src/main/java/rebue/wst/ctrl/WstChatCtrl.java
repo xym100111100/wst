@@ -172,4 +172,32 @@ public class WstChatCtrl {
 		log.info("getChatByUserId: userId-{}", userId);
 		return svc.getChatByUserId(userId);
 	}
+
+	/**
+	 * 获取用户所有未读消息数量
+	 * 
+	 * @param toUserId
+	 * @return
+	 */
+	@GetMapping("/wst/chat/get-unread-content-by-to-user-id")
+	int getUnreadContentByToUserId(@RequestParam("toUserId") final java.lang.Long toUserId) {
+		log.info("获取用户未读取消息的数量的参数为toUserId-{}", toUserId);
+		return svc.getUnreadContentByToUserId(toUserId);
+	}
+
+	@PutMapping("/wst/chat/clean-unread-content")
+	Ro cleanUnreadContent(@RequestBody final WstChatMo mo) {
+		log.info("清除未读消息的参数为:mo-{}", mo);
+		int i = svc.cleanUnreadContent(mo);
+		log.info("清除未读消息的结果为:mo-{}", i);
+		if (i > 0) {
+			final String msg = "修改成功";
+			log.info("{}: mo-{}", msg, mo);
+			return new Ro(ResultDic.SUCCESS, msg);
+		}else {
+			final String msg = "失败";
+			log.info("{}: mo-{}", msg, mo);
+			return new Ro(ResultDic.FAIL, msg);
+		}
+	}
 }

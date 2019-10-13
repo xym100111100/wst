@@ -128,4 +128,16 @@ public class WstChatSvcImpl extends BaseSvcImpl<java.lang.Long, WstChatJo, WstCh
 		return PageHelper.startPage(pageNum, pageSize)
 				.doSelectPageInfo(() -> _mapper.listChat(mo.getFromUserId(), mo.getToUserId()));
 	}
+	
+	
+	@Override
+	public int getUnreadContentByToUserId(Long toUserId) {
+		
+		return _mapper.getUnreadContentByToUserId(toUserId);
+	}
+
+	@Override
+	public int cleanUnreadContent(WstChatMo mo) {
+		return _mapper.cleanUnreadContent(mo.getToUserId(), mo.getFromUserId());
+	}
 }

@@ -36,6 +36,7 @@ public class WebSocketChatServer {
 	private WstChatSvc wstChatSvc;
 
 
+
 	/**
 	 * 
 	 * @param session
@@ -60,7 +61,7 @@ public class WebSocketChatServer {
 	public void onClose(Session session) throws IOException {
 		log.info("sessionId-{}", session.id());
 		for (Map.Entry<String, WebSocketChatServer> entry : webSocketSet.entrySet()) {
-			if(entry.getValue().session.equals(session)) {
+			if (entry.getValue().session.equals(session)) {
 				webSocketSet.remove(entry.getKey());
 			}
 		}
@@ -83,6 +84,7 @@ public class WebSocketChatServer {
 			log.info("在线");
 			// 标记已读标示为true
 			chatMo.setAlreadyRead(true);
+
 			webSocketSet.get(jsonObject.get("toUserId")).session.sendText(message);
 		} else {
 			// 标记已读标示为false
@@ -98,7 +100,6 @@ public class WebSocketChatServer {
 		log.info("添加聊天记录的参数为-{}", chatMo);
 		int i = wstChatSvc.add(chatMo);
 		log.info("添加聊天记录的结果为-{}", i);
-		
 
 	}
 
