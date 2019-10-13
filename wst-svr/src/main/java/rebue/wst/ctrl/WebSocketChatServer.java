@@ -59,6 +59,12 @@ public class WebSocketChatServer {
 	@OnClose
 	public void onClose(Session session) throws IOException {
 		log.info("sessionId-{}", session.id());
+		for (Map.Entry<String, WebSocketChatServer> entry : webSocketSet.entrySet()) {
+			if(entry.getValue().session.equals(session)) {
+				webSocketSet.remove(entry.getKey());
+			}
+		}
+		log.info("webSocketSet.size()-{}", webSocketSet.size());
 		log.info("one connection closed");
 	}
 
@@ -92,7 +98,7 @@ public class WebSocketChatServer {
 		log.info("添加聊天记录的参数为-{}", chatMo);
 		int i = wstChatSvc.add(chatMo);
 		log.info("添加聊天记录的结果为-{}", i);
-		log.info("webSocketSet.size()-{}", webSocketSet.size());
+		
 
 	}
 

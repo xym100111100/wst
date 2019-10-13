@@ -1,5 +1,6 @@
 package rebue.wst.svc;
 
+import java.util.List;
 
 import com.github.pagehelper.PageInfo;
 
@@ -14,6 +15,8 @@ import rebue.wst.ro.ChatRo;
  * @mbg.generated 自动生成的注释，如需修改本注释，请删除本行
  */
 public interface WstChatSvc extends BaseSvc<java.lang.Long, WstChatMo, WstChatJo> {
-	
-	PageInfo<ChatRo> getChatByUserId( final java.lang.Long userId,Integer pageNum, Integer pageSize);
+
+	List<ChatRo> getChatByUserId(final java.lang.Long userId);
+
+	PageInfo<WstChatMo> listChat(WstChatMo mo, Integer pageNum, Integer pageSize);
 }

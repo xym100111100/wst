@@ -1,6 +1,9 @@
 package rebue.wst.ctrl;
 
 import com.github.pagehelper.PageInfo;
+
+import java.util.List;
+
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -139,7 +142,7 @@ public class WstChatCtrl {
 			pageNum = 1;
 		}
 		if (pageSize == null) {
-			pageSize = 5;
+			pageSize = 20;
 		}
 		log.info("list WstChatMo:" + mo + ", pageNum = " + pageNum + ", pageSize = " + pageSize);
 		if (pageSize > 50) {
@@ -147,7 +150,7 @@ public class WstChatCtrl {
 			log.error(msg);
 			throw new IllegalArgumentException(msg);
 		}
-		final PageInfo<WstChatMo> result = svc.list(mo, pageNum, pageSize);
+		final PageInfo<WstChatMo> result = svc.listChat(mo, pageNum, pageSize);
 		log.info("result: " + result);
 		return result;
 	}
@@ -165,21 +168,8 @@ public class WstChatCtrl {
 	}
 
 	@GetMapping("/wst/chat/get-chat-by-user-id")
-	PageInfo<ChatRo> getChatByUserId(@RequestParam("userId") final java.lang.Long userId,
-			@RequestParam(value = "pageNum", required = false) Integer pageNum,
-			@RequestParam(value = "pageSize", required = false) Integer pageSize) {
-		log.info("getChatByUserId: userId-{},pageNum-{},pageSize-{}", userId, pageNum, pageSize);
-		if (pageNum == null) {
-			pageNum = 1;
-		}
-		if (pageSize == null) {
-			pageSize = 5;
-		}
-		if (pageSize > 50) {
-			final String msg = "pageSize不能大于50";
-			log.error(msg);
-			throw new IllegalArgumentException(msg);
-		}
-		return svc.getChatByUserId(userId, pageNum, pageSize);
+	List<ChatRo> getChatByUserId(@RequestParam("userId") final java.lang.Long userId) {
+		log.info("getChatByUserId: userId-{}", userId);
+		return svc.getChatByUserId(userId);
 	}
 }

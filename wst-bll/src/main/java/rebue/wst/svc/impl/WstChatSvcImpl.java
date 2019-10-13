@@ -2,6 +2,7 @@ package rebue.wst.svc.impl;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -59,55 +60,72 @@ public class WstChatSvcImpl extends BaseSvcImpl<java.lang.Long, WstChatJo, WstCh
 
 	/**
 	 * 查询用户与最新用户聊天的记录
+	 * 
+	 * 1:获取到所有和自己有聊天的用户id 2:获取自己和该用户最新的聊天记录 3:获取toUserId是我FromUserId是他
+	 * 且alreadyRead字段为false的记录数量
+	 * 
 	 */
 	@Override
-	public PageInfo<ChatRo> getChatByUserId(Long userId, Integer pageNum, Integer pageSize) {
-		PageInfo<ChatRo> result = PageHelper.startPage(pageNum, pageSize)
-				.doSelectPageInfo(() -> _mapper.getChatByUserId(userId));
-		if (result.getList().size() > 0) {
-			log.info("拼接用户Id去查询用户微信昵称和头像");
-			String userIds = "";
-			int i = 0;
-			for (final ChatRo item : result.getList()) {
-				i += 1;
-				// 判断并拼接该使用toUserId还是fromUserId获取用户名称和头像
-				if (item.getFromUserId().equals(userId)) {
-					userIds += "'";
-					userIds += item.getToUserId();
-					userIds += "'";
-				} else {
-					userIds += "'";
-					userIds += item.getFromUserId();
-					userIds += "'";
-				}
-				if (i != result.getList().size()) {
-					userIds += ',';
-				}
-			}
+	public List<ChatRo> getChatByUserId(Long userId) {
 
-			log.info("获取用户名称和头像的ids参数是:-{}", userIds);
-			List<SucUserMo> userResult = sucUserSvc.getByIds(userIds);
-			for (final ChatRo item : result.getList()) {
-				// 如果userId等于查询回来的记录fromUserId,证明是我发给人家的前面是使用toUserId去查询的用户
-				if (item.getFromUserId().equals(userId)) {
-					for (SucUserMo sucUserMo : userResult) {
-						if (item.getToUserId().equals(sucUserMo.getId())) {
-							item.setToUserName(sucUserMo.getWxName());
-							item.setToUserWxfacePath(sucUserMo.getWxFacePath());
-						}
-					}
-				} else {
-					for (SucUserMo sucUserMo : userResult) {
-						if (item.getFromUserId().equals(sucUserMo.getId())) {
-							item.setToUserName(sucUserMo.getWxName());
-							item.setToUserWxfacePath(sucUserMo.getWxFacePath());
-						}
-					}
-				}
+		List<ChatRo> result = new ArrayList<ChatRo>();
+		// 1:获取到所有和自己有聊天的用户id
+		List<Long> otherUserIds = _mapper.getOtherUserId(userId);
+		log.info("otherUserId", otherUserIds);
+		// 2:获取自己和该用户最新的聊天记录
+		// 拼接用户id去获取用户名称和头像
+		String userIds = "";
+		int i = 0;
+		for (Long otherUserId : otherUserIds) {
+			log.info("获取最新消息的参数为userId:{}otherUserId:{}", userId, otherUserId);
+			ChatRo newestMsg = _mapper.getNewestMsg(userId, otherUserId);
+			log.info("获取最新消息的结果为newestMsg:{}", newestMsg);
+			// 3:获取toUserId是我FromUserId是他且alreadyRead字段为false的记录数量
+			log.info("获取未读消息参数为userId:{}otherUserId:{}", userId, otherUserId);
+			int notReadCount = _mapper.getNotReadCount(userId, otherUserId);
+			log.info("获取未读消息结果为notReadCount:{}", notReadCount);
+			newestMsg.setNotReadCount(notReadCount);
+			result.add(newestMsg);
 
+			// 判断并拼接该使用获取用户名称和头像
+			i += 1;
+			userIds += "'";
+			userIds += otherUserId;
+			userIds += "'";
+			if (i < otherUserIds.size()) {
+				userIds += ',';
 			}
 		}
 
+		log.info("获取用户名称和头像的ids参数是:-{}", userIds);
+		List<SucUserMo> userResult = sucUserSvc.getByIds(userIds);
+		for (final ChatRo item : result) {
+			// 如果userId等于查询回来的记录fromUserId,证明是我发给人家的前面是使用toUserId去查询的用户
+			if (item.getFromUserId().equals(userId)) {
+				for (SucUserMo sucUserMo : userResult) {
+					if (item.getToUserId().equals(sucUserMo.getId())) {
+						item.setToUserName(sucUserMo.getWxName());
+						item.setToUserWxfacePath(sucUserMo.getWxFacePath());
+					}
+				}
+			} else {
+				for (SucUserMo sucUserMo : userResult) {
+					if (item.getFromUserId().equals(sucUserMo.getId())) {
+						item.setToUserName(sucUserMo.getWxName());
+						item.setToUserWxfacePath(sucUserMo.getWxFacePath());
+					}
+				}
+			}
+
+		}
 		return result;
+
+	}
+
+	@Override
+	public PageInfo<WstChatMo> listChat(WstChatMo mo, Integer pageNum, Integer pageSize) {
+
+		return PageHelper.startPage(pageNum, pageSize)
+				.doSelectPageInfo(() -> _mapper.listChat(mo.getFromUserId(), mo.getToUserId()));
 	}
 }
