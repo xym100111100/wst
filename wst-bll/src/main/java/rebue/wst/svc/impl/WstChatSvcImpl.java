@@ -96,28 +96,30 @@ public class WstChatSvcImpl extends BaseSvcImpl<java.lang.Long, WstChatJo, WstCh
 				userIds += ',';
 			}
 		}
+		if (otherUserIds.size() > 0) {
+			log.info("获取用户名称和头像的ids参数是:-{}", userIds);
+			List<SucUserMo> userResult = sucUserSvc.getByIds(userIds);
+			for (final ChatRo item : result) {
+				// 如果userId等于查询回来的记录fromUserId,证明是我发给人家的前面是使用toUserId去查询的用户
+				if (item.getFromUserId().equals(userId)) {
+					for (SucUserMo sucUserMo : userResult) {
+						if (item.getToUserId().equals(sucUserMo.getId())) {
+							item.setToUserName(sucUserMo.getWxName());
+							item.setToUserWxfacePath(sucUserMo.getWxFacePath());
+						}
+					}
+				} else {
+					for (SucUserMo sucUserMo : userResult) {
+						if (item.getFromUserId().equals(sucUserMo.getId())) {
+							item.setToUserName(sucUserMo.getWxName());
+							item.setToUserWxfacePath(sucUserMo.getWxFacePath());
+						}
+					}
+				}
 
-		log.info("获取用户名称和头像的ids参数是:-{}", userIds);
-		List<SucUserMo> userResult = sucUserSvc.getByIds(userIds);
-		for (final ChatRo item : result) {
-			// 如果userId等于查询回来的记录fromUserId,证明是我发给人家的前面是使用toUserId去查询的用户
-			if (item.getFromUserId().equals(userId)) {
-				for (SucUserMo sucUserMo : userResult) {
-					if (item.getToUserId().equals(sucUserMo.getId())) {
-						item.setToUserName(sucUserMo.getWxName());
-						item.setToUserWxfacePath(sucUserMo.getWxFacePath());
-					}
-				}
-			} else {
-				for (SucUserMo sucUserMo : userResult) {
-					if (item.getFromUserId().equals(sucUserMo.getId())) {
-						item.setToUserName(sucUserMo.getWxName());
-						item.setToUserWxfacePath(sucUserMo.getWxFacePath());
-					}
-				}
 			}
-
 		}
+
 		return result;
 
 	}
@@ -128,11 +130,10 @@ public class WstChatSvcImpl extends BaseSvcImpl<java.lang.Long, WstChatJo, WstCh
 		return PageHelper.startPage(pageNum, pageSize)
 				.doSelectPageInfo(() -> _mapper.listChat(mo.getFromUserId(), mo.getToUserId()));
 	}
-	
-	
+
 	@Override
 	public int getUnreadContentByToUserId(Long toUserId) {
-		
+
 		return _mapper.getUnreadContentByToUserId(toUserId);
 	}
 
